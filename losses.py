@@ -73,7 +73,7 @@ class MultiScale(nn.Module):
         lossvalue = 0
         epevalue = 0
 
-        if type(output) is tuple:
+        '''if type(output) is tuple:
             target = self.div_flow * target
             for i, output_ in enumerate(output):
                 target_ = self.multiScales[i](target)
@@ -83,5 +83,23 @@ class MultiScale(nn.Module):
         else:
             epevalue += EPE(output, target)
             lossvalue += self.loss(output, target)
+            return  [lossvalue, epevalue]'''
+        
+        
+        
+        if type(output) is tuple:
+            target = self.div_flow * target
+            for i, output_ in enumerate(output):
+                target_ = self.multiScales[i](target)
+                if i == 0:
+                    epevalue = EPE(output_, target_) * self.loss_weights[i]
+                    lossvalue = self.loss(output_, target_) * self.loss_weights[i]
+                else:
+                    epevalue += EPE(output_, target_) * self.loss_weights[i]
+                    lossvalue += self.loss(output_, target_) * self.loss_weights[i]
+            return [lossvalue, epevalue]
+        else:
+            epevalue = EPE(output, target)
+            lossvalue = self.loss(output, target)
             return  [lossvalue, epevalue]
 
