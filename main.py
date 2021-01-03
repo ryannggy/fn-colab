@@ -410,6 +410,10 @@ if __name__ == '__main__':
     offset = 1
     last_epoch_time = progress._time()
     global_iteration = 0
+    
+    train_loss_list=[]
+    numbering=[]
+    count = 0
 
     for epoch in progress:
         if args.inference or (args.render_validation and ((epoch - 1) % args.validation_frequency) == 0):
@@ -439,7 +443,7 @@ if __name__ == '__main__':
             train_loss, iterations = train(args=args, epoch=epoch, start_iteration=global_iteration, data_loader=train_loader, model=model_and_loss, optimizer=optimizer, logger=train_logger, offset=offset)
             global_iteration += iterations
             offset += 1
-
+            train_loss_list.append(train_loss)
             # save checkpoint after every validation_frequency number of epochs
             if ((epoch - 1) % args.validation_frequency) == 0:
                 checkpoint_progress = tqdm(ncols=100, desc='Saving Checkpoint', position=offset)
@@ -454,4 +458,10 @@ if __name__ == '__main__':
 
         train_logger.add_scalar('seconds per epoch', progress._time() - last_epoch_time, epoch)
         last_epoch_time = progress._time()
+        
+        numbering.append(count)
+        count += 1
+        
+    df = pandas.DataFrame(data={"col1":numbering, "col2": train_loss_list})
+    df.to_csv("/content/drive/MyDrive/checkpoints/loss.csv", sep=',',index=False)
     print("\n")
