@@ -412,8 +412,10 @@ if __name__ == '__main__':
     global_iteration = 0
     
     train_loss_list=[]
-    numbering=[]
-    count = 0
+    train_numbering=[]
+    val_loss_list=[]
+    val_numbering=[]
+    train_count = 0
 
     for epoch in progress:
         if args.inference or (args.render_validation and ((epoch - 1) % args.validation_frequency) == 0):
@@ -423,7 +425,8 @@ if __name__ == '__main__':
         if not args.skip_validation and ((epoch - 1) % args.validation_frequency) == 0:
             validation_loss, _ = train(args=args, epoch=epoch - 1, start_iteration=global_iteration, data_loader=validation_loader, model=model_and_loss, optimizer=optimizer, logger=validation_logger, is_validate=True, offset=offset)
             offset += 1
-
+            val_loss_list.append(validation_loss)
+            
             is_best = False
             if validation_loss < best_err:
                 best_err = validation_loss
@@ -438,6 +441,8 @@ if __name__ == '__main__':
             checkpoint_progress.update(1)
             checkpoint_progress.close()
             offset += 1
+            val_numbering.append(val_count)
+            val_count += 1
 
         if not args.skip_training:
             train_loss, iterations = train(args=args, epoch=epoch, start_iteration=global_iteration, data_loader=train_loader, model=model_and_loss, optimizer=optimizer, logger=train_logger, offset=offset)
@@ -454,14 +459,16 @@ if __name__ == '__main__':
                                           False, args.save, args.model, filename = 'train-checkpoint.pth.tar')
                 checkpoint_progress.update(1)
                 checkpoint_progress.close()
-
+            train_numbering.append(train_count)
+            train_count += 1
 
         train_logger.add_scalar('seconds per epoch', progress._time() - last_epoch_time, epoch)
         last_epoch_time = progress._time()
         
-        numbering.append(count)
-        count += 1
         
-    df = pandas.DataFrame(data={"col1":numbering, "col2": train_loss_list})
-    df.to_csv("/content/drive/MyDrive/checkpoints/loss.csv", sep=',',index=False)
+        
+    train_df = pandas.DataFrame(data={"col1":train_numbering, "col2": train_loss_list})
+    train_df.to_csv("/content/drive/MyDrive/checkpoints/train_loss.csv", sep=',',index=False)
+    val_df = pandas.DataFrame(data={"col1":val_numbering, "col2": val_loss_list})
+    val_df.to_csv("/content/drive/MyDrive/checkpoints/val_loss.csv", sep=',',index=False)
     print("\n")
