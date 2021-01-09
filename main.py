@@ -416,7 +416,7 @@ if __name__ == '__main__':
     val_loss_list=[]
     val_numbering=[]
     train_count = 0
-
+    val_count = 0
     for epoch in progress:
         if args.inference or (args.render_validation and ((epoch - 1) % args.validation_frequency) == 0):
             stats = inference(args=args, epoch=epoch - 1, data_loader=inference_loader, model=model_and_loss, offset=offset)
